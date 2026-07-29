@@ -1,0 +1,30 @@
+# environment variables
+.env
+
+# virtual environment
+.venv/
+venv/
+
+# python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# logs
+*.log
+
+# local database / vector database
+chroma_db/
+*.db
+*.sqlite3
+
+# system files
+.DS_Store
+Thumbs.db
