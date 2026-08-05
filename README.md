@@ -118,3 +118,16 @@ Pydantic 校验参数
 使用 LangGraph 扩展为求职规划 Agent
 学习收获
 通过本项目，我熟悉了 FastAPI 的基础接口开发流程，掌握了大模型 API 的基本调用方式，并实践了 Prompt 设计、结构化输出和统一响应格式，为后续开发 RAG 知识库和 AI Agent 项目打下基础。
+## 第2周：RAG 向量检索 Demo
+
+本阶段使用 Chroma 实现本地向量数据库检索。流程为：准备文本 → 存入 Chroma collection → 用户提问 → 检索 TopK 相关文本。
+
+核心文件：
+
+- `app/rag/splitter.py`：文本切分模块
+- `app/rag/vector_store_demo.py`：Chroma 向量检索 Demo
+
+本地运行：
+
+```bash
+python app/rag/vector_store_demo.py
