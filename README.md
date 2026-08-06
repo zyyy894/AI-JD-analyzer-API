@@ -131,3 +131,21 @@ Pydantic 校验参数
 
 ```bash
 python app/rag/vector_store_demo.py
+## RAG 基础模块
+
+本项目新增 RAG 基础检索模块，支持文本切分、向量数据库存储和相似度检索。
+
+### 实现流程
+
+文本输入 → 文本切分 → 存入 Chroma → 用户提问 → 检索相关片段
+
+### 核心文件
+
+- `app/rag/splitter.py`：文本切分
+- `app/rag/vector_store.py`：向量数据库存储和检索
+- `app/rag/rag_demo.py`：完整演示流程
+
+### 运行方式
+
+```bash
+python -m app.rag.rag_demo
