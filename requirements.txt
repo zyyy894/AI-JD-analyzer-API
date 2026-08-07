@@ -5,3 +5,5 @@ python-dotenv
 langchain-text-splitters
 pytest
 chromadb
+pypdf
+python-docx
