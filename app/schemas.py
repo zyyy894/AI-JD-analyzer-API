@@ -17,3 +17,5 @@ class ApiResponse(BaseModel):
     code: int
     message: str
     data: Any = None
+class AgentRequest(BaseModel):
+    task: str = Field(..., min_length=1, description="用户复杂任务")

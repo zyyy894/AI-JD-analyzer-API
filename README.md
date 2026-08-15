@@ -149,3 +149,53 @@ python app/rag/vector_store_demo.py
 
 ```bash
 python -m app.rag.rag_demo
+
+
+
+## Agent 和普通 Chatbot 的区别
+
+普通 Chatbot：
+- 用户输入问题后，模型直接生成回答
+- 不会主动调用外部工具
+
+Agent：
+- 会先理解用户任务
+- 会判断需要调用哪些工具
+- 可以把多个工具结果组合起来
+
+## Agent 工作流
+
+```mermaid
+flowchart TD
+    A[用户输入复杂任务] --> B[意图识别节点]
+    B --> C{条件分支}
+    C --> D[知识库检索节点]
+    C --> E[岗位JD分析节点]
+    C --> F[报告生成节点]
+    D --> G[报告生成节点]
+    E --> G
+    G --> H[Markdown导出节点]
+    H --> I[返回结果]
+```
+
+# 第 4 周：RAG Agent 智能体化
+
+### 新增功能
+
+- LangGraph Agent 工作流
+- Agent State 状态管理
+- 多节点执行流程
+- 条件分支
+- 工具调用
+- 复杂任务处理
+- Markdown 报告生成
+
+### 新增项目结构
+
+```text
+app/
+  agent/
+    __init__.py
+    state.py
+    tools.py
+    graph.py

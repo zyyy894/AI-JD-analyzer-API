@@ -1,10 +1,11 @@
 import json
 from fastapi import FastAPI, HTTPException
-
+from app.agent.graph import build_agent_graph
 from app.schemas import (
     JDAnalyzeRequest,
     RagIngestRequest,
     RagAskRequest,
+    AgentRequest,
     ApiResponse,
 )
 from app.services.prompt_service import build_jd_analyze_prompt
@@ -24,7 +25,7 @@ init_db()
 app = FastAPI(title="AI JD Analyzer")
 
 rag_service = RagService()
-
+agent_app = build_agent_graph()
 
 @app.get("/health")
 def health():
@@ -147,4 +148,24 @@ def rag_history():
         "code": 200,
         "message": "success",
         "data": list_qa_history()
+    }
+@app.post("/agent/run", response_model=ApiResponse)
+def run_agent(request: AgentRequest):
+    task = request.task.strip()
+
+    if not task:
+        raise HTTPException(status_code=400, detail="任务不能为空")
+
+    result = agent_app.invoke({
+        "user_input": task,
+        "intent": "",
+        "tool_results": [],
+        "final_answer": "",
+        "markdown_report": "",
+    })
+
+    return {
+        "code": 200,
+        "message": "success",
+        "data": result,
     }
