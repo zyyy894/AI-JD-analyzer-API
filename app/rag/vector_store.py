@@ -35,13 +35,17 @@ class VectorStore:
         metadatas = results.get("metadatas", [[]])[0]
         distances = results.get("distances", [[]])[0]
 
-        return [
-            {
+        items = []
+
+        for doc, metadata, distance in zip(documents, metadatas, distances):
+            metadata = metadata or {}
+
+            items.append({
                 "content": doc,
                 "document_id": metadata.get("document_id"),
                 "filename": metadata.get("filename"),
                 "chunk_index": metadata.get("chunk_index"),
                 "distance": distance,
-            }
-            for doc, metadata, distance in zip(documents, metadatas, distances)
-        ]
+            })
+
+        return items

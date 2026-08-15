@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Dict, Any
+from uuid import uuid4
 
 from app.rag.splitter import split_text
 from app.rag.vector_store import VectorStore
@@ -12,17 +13,24 @@ class RagService:
             collection_name="job_docs"
         )
 
-    def ingest_text(self, text: str) -> List[str]:
+    def ingest_text(self, text: str, filename: str = "input.txt") -> List[str]:
         chunks = split_text(
             text,
             chunk_size=500,
             chunk_overlap=100
         )
 
-        self.vector_store.add_texts(chunks)
+        document_id = str(uuid4())
+
+        self.vector_store.add_chunks(
+            document_id=document_id,
+            filename=filename,
+            chunks=chunks
+        )
+
         return chunks
 
-    def ask(self, question: str, top_k: int = 3) -> dict:
+    def ask(self, question: str, top_k: int = 3) -> Dict[str, Any]:
         contexts = self.vector_store.search(
             query=question,
             top_k=top_k
@@ -39,9 +47,18 @@ class RagService:
     def _build_rag_prompt(
         self,
         question: str,
-        contexts: List[str]
+        contexts: List[Dict[str, Any]]
     ) -> str:
-        context_text = "\n\n".join(contexts)
+        context_text = "\n\n".join(
+            [
+                context.get("content", "")
+                for context in contexts
+                if context.get("content")
+            ]
+        )
+
+        if not context_text:
+            context_text = "知识库中没有检索到相关资料。"
 
         return f"""
 你是一个严谨的知识库问答助手。
