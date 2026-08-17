@@ -1,31 +1,33 @@
 import json
+
 from fastapi import FastAPI, HTTPException
-from app.agent.graph import build_agent_graph
-from app.schemas import (
-    JDAnalyzeRequest,
-    RagIngestRequest,
-    RagAskRequest,
-    AgentRequest,
-    ApiResponse,
-)
-from app.services.prompt_service import build_jd_analyze_prompt
+
+from app.api.agent_api import router as agent_router
+from app.api.rag_api import router as rag_router
+from app.schemas import ApiResponse, JDAnalyzeRequest
+from app.services.db_service import init_db
 from app.services.llm_service import call_llm
-from app.rag.rag_service import RagService
-from fastapi import UploadFile, File
-from app.services.file_service import save_upload_file
-from app.rag.document_loader import load_document_text
-from app.services.db_service import (
-    init_db,
-    insert_document,
-    list_documents,
-    insert_qa_history,
-    list_qa_history,
-)
+from app.services.prompt_service import build_jd_analyze_prompt
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+
+
 init_db()
+
 app = FastAPI(title="AI JD Analyzer")
 
-rag_service = RagService()
-agent_app = build_agent_graph()
+app.include_router(rag_router)
+app.include_router(agent_router)
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
+
+@app.get("/")
+def index():
+    return FileResponse("frontend/index.html")
+
+
+
 
 @app.get("/health")
 def health():
@@ -61,111 +63,4 @@ def analyze_jd(request: JDAnalyzeRequest):
         "code": 200,
         "message": "success",
         "data": result_json
-    }
-
-
-@app.post("/rag/ingest", response_model=ApiResponse)
-def rag_ingest(request: RagIngestRequest):
-    text = request.text.strip()
-
-    if not text:
-        raise HTTPException(status_code=400, detail="知识库文本不能为空")
-
-    chunks = rag_service.ingest_text(text)
-
-    return {
-        "code": 200,
-        "message": "知识库写入成功",
-        "data": {
-            "chunk_count": len(chunks),
-            "chunks": chunks
-        }
-    }
-
-@app.post("/rag/ask", response_model=ApiResponse)
-def rag_ask(request: RagAskRequest):
-    question = request.question.strip()
-
-    if not question:
-        raise HTTPException(status_code=400, detail="问题不能为空")
-
-    result = rag_service.ask(
-        question=question,
-        top_k=request.top_k
-    )
-
-    insert_qa_history(
-        question=question,
-        answer=result["answer"],
-        sources=result["sources"],
-    )
-
-    return {
-        "code": 200,
-        "message": "回答成功",
-        "data": result
-    }
-@app.post("/rag/documents/upload", response_model=ApiResponse)
-def upload_document(file: UploadFile = File(...)):
-    saved = save_upload_file(file)
-    text = load_document_text(saved["file_path"])
-
-    if not text.strip():
-        raise HTTPException(status_code=400, detail="文档没有可入库文本")
-
-    chunks = rag_service.ingest_document(
-        document_id=saved["document_id"],
-        filename=saved["filename"],
-        text=text,
-    )
-
-    insert_document(
-        document_id=saved["document_id"],
-        filename=saved["filename"],
-        file_path=saved["file_path"],
-        chunk_count=len(chunks),
-    )
-
-    return {
-        "code": 200,
-        "message": "文档上传并入库成功",
-        "data": {
-            "document_id": saved["document_id"],
-            "filename": saved["filename"],
-            "chunk_count": len(chunks),
-        }
-    }
-@app.get("/rag/documents", response_model=ApiResponse)
-def rag_documents():
-    return {
-        "code": 200,
-        "message": "success",
-        "data": list_documents()
-    }
-@app.get("/rag/history", response_model=ApiResponse)
-def rag_history():
-    return {
-        "code": 200,
-        "message": "success",
-        "data": list_qa_history()
-    }
-@app.post("/agent/run", response_model=ApiResponse)
-def run_agent(request: AgentRequest):
-    task = request.task.strip()
-
-    if not task:
-        raise HTTPException(status_code=400, detail="任务不能为空")
-
-    result = agent_app.invoke({
-        "user_input": task,
-        "intent": "",
-        "tool_results": [],
-        "final_answer": "",
-        "markdown_report": "",
-    })
-
-    return {
-        "code": 200,
-        "message": "success",
-        "data": result,
     }

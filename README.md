@@ -199,3 +199,48 @@ app/
     state.py
     tools.py
     graph.py
+
+
+
+
+# 企业知识库智能体助手
+
+## 项目简介
+
+这是一个基于 FastAPI、Chroma、LangGraph 和大模型 API 的企业知识库智能体助手。
+
+## 核心功能
+
+- 文档上传
+- 文本切分
+- 向量数据库存储
+- RAG 问答
+- 来源引用
+- 问答历史
+- Agent 工具调用
+- 学习计划生成
+- Markdown 报告导出
+
+## 技术栈
+
+- Python
+- FastAPI
+- Chroma
+- SQLite
+- LangGraph
+- DeepSeek / OpenAI Compatible API
+- HTML / CSS / JavaScript
+
+## 项目结构
+
+```text
+app/
+  api/
+  agent/
+  rag/
+  services/
+frontend/
+scripts/
+README.md
+requirements.txt
+.env.example

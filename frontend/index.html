@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>企业知识库智能体助手</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="container">
+        <h1>企业知识库智能体助手</h1>
+
+        <section>
+            <h2>上传文档</h2>
+            <input id="fileInput" type="file">
+            <button id="uploadBtn">上传</button>
+            <p id="uploadResult"></p>
+        </section>
+
+        <section>
+            <h2>RAG 问答</h2>
+            <textarea id="questionInput" placeholder="请输入问题"></textarea>
+            <button id="askBtn">提问</button>
+            <div id="answerBox"></div>
+            <ul id="sourceList"></ul>
+        </section>
+
+        <section>
+            <h2>Agent 复杂任务</h2>
+            <textarea id="taskInput" placeholder="例如：根据知识库内容生成一份学习计划"></textarea>
+            <button id="agentBtn">运行 Agent</button>
+            <pre id="agentResult"></pre>
+        </section>
+    </main>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
