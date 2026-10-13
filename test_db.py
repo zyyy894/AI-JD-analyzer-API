@@ -50,6 +50,14 @@ def test_login_register_and_validation(client):
     assert client.post("/auth/login", data={"username": user["email"], "password": "wrong"}).status_code == 401
 
 
+def test_change_password(client):
+    user, headers = register(client)
+    assert client.post("/auth/password", json={"current_password": "wrong-password", "new_password": "new-long-password"}, headers=headers).status_code == 400
+    assert client.post("/auth/password", json={"current_password": "long-password-123", "new_password": "new-long-password"}, headers=headers).status_code == 200
+    assert client.post("/auth/login", data={"username": user["email"], "password": "long-password-123"}).status_code == 401
+    assert client.post("/auth/login", data={"username": user["email"], "password": "new-long-password"}).status_code == 200
+
+
 @pytest.mark.parametrize("method,path,body", [
     ("GET", "/rag/documents", None), ("GET", "/rag/history", None),
     ("GET", "/auth/me", None), ("GET", "/auth/users", None),

@@ -38,7 +38,7 @@ Do not commit `.env`, API keys, uploaded files, SQLite data, or Chroma data.
 
 ## Main API
 
-- `POST /auth/register`, `POST /auth/login`, `GET /auth/me`
+- `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `POST /auth/password`
 - `POST /rag/documents/upload`
 - `POST /analyze-jd`
 - `POST /analyze-jd/async`

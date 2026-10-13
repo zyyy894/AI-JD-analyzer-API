@@ -18,8 +18,12 @@
             <div class="button-row">
                 <input id="authEmail" type="email" placeholder="邮箱">
                 <input id="authPassword" type="password" placeholder="密码（至少 8 位）">
+                <input id="currentPassword" type="password" placeholder="当前密码" hidden>
+                <input id="newPassword" type="password" placeholder="新密码（至少 8 位）" hidden>
+                <input id="confirmPassword" type="password" placeholder="确认新密码" hidden>
                 <button class="primary-btn" id="loginBtn" type="button">登录</button>
                 <button class="ghost-btn" id="registerBtn" type="button">注册</button>
+                <button class="ghost-btn" id="changePasswordBtn" type="button" hidden>修改密码</button>
                 <button class="ghost-btn" id="logoutBtn" type="button" hidden>退出</button>
             </div>
             <span id="authResult" class="feedback">请输入账号</span>

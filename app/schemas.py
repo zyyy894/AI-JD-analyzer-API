@@ -54,5 +54,10 @@ class UserRegister(BaseModel):
         import re
         value = value.strip().lower()
         if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", value):
-            raise ValueError("Invalid email address")
+            raise ValueError("邮箱格式不正确")
         return value
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str = Field(..., min_length=1, max_length=128)
+    new_password: str = Field(..., min_length=8, max_length=128)

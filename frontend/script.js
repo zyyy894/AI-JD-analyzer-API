@@ -15,6 +15,10 @@ function cacheEls() {
     els.loginBtn = document.getElementById("loginBtn");
     els.registerBtn = document.getElementById("registerBtn");
     els.logoutBtn = document.getElementById("logoutBtn");
+    els.currentPassword = document.getElementById("currentPassword");
+    els.newPassword = document.getElementById("newPassword");
+    els.confirmPassword = document.getElementById("confirmPassword");
+    els.changePasswordBtn = document.getElementById("changePasswordBtn");
     els.authResult = document.getElementById("authResult");
     els.fileInput = document.getElementById("fileInput");
     els.dropzone = document.getElementById("dropzone");
@@ -258,6 +262,7 @@ function setAuthenticated(token) {
     els.authPanel.hidden = false;
     [els.authEmail, els.authPassword, els.loginBtn, els.registerBtn].forEach(el => { el.hidden = Boolean(state.token); });
     els.logoutBtn.hidden = !state.token;
+    [els.currentPassword, els.newPassword, els.confirmPassword, els.changePasswordBtn].forEach(el => { el.hidden = !state.token; });
     document.querySelector("main.app-shell").hidden = !state.token;
     els.authPassword.value = "";
     state.answerText = "";
@@ -273,7 +278,7 @@ function setAuthenticated(token) {
     renderDocuments([]);
     renderHistory([]);
     renderSources([]);
-    els.authResult.textContent = state.token ? "Signed in" : "Please sign in";
+    els.authResult.textContent = state.token ? "登录成功" : "请先登录";
 }
 
 async function authenticate(mode) {
@@ -421,10 +426,54 @@ async function copyText(text) {
     }
 }
 
+async function authenticate(mode) {
+    const email = els.authEmail.value.trim();
+    const password = els.authPassword.value;
+    if (!email || !password) {
+        els.authResult.textContent = "请输入邮箱和密码";
+        return;
+    }
+    try {
+        const options = mode === "login"
+            ? { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ username: email, password }) }
+            : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password }) };
+        const payload = await requestJson(`/auth/${mode}`, options);
+        setAuthenticated(payload.access_token || payload.data.access_token);
+        els.authResult.textContent = mode === "login" ? "登录成功" : "注册成功，已自动登录";
+        await Promise.all([loadDocuments(), loadHistory()]);
+    } catch (error) {
+        els.authResult.textContent = error.message || "操作失败，请稍后重试";
+    }
+}
+
+async function changePassword() {
+    const currentPassword = els.currentPassword.value;
+    const newPassword = els.newPassword.value;
+    const confirmPassword = els.confirmPassword.value;
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        els.authResult.textContent = "请完整填写密码信息";
+        return;
+    }
+    if (newPassword !== confirmPassword) {
+        els.authResult.textContent = "两次输入的新密码不一致";
+        return;
+    }
+    try {
+        await requestJson("/auth/password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }) });
+        els.currentPassword.value = "";
+        els.newPassword.value = "";
+        els.confirmPassword.value = "";
+        els.authResult.textContent = "密码修改成功，请使用新密码登录";
+    } catch (error) {
+        els.authResult.textContent = error.message || "密码修改失败，请稍后重试";
+    }
+}
+
 function bindEvents() {
     els.loginBtn.addEventListener("click", () => authenticate("login"));
     els.registerBtn.addEventListener("click", () => authenticate("register"));
     els.logoutBtn.addEventListener("click", () => setAuthenticated(""));
+    els.changePasswordBtn.addEventListener("click", changePassword);
     els.fileInput.addEventListener("change", () => {
         state.selectedFile = els.fileInput.files[0] || null;
         els.fileMeta.textContent = fileLabel(state.selectedFile);
