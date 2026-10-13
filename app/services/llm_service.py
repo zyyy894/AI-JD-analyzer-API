@@ -2,7 +2,9 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-load_dotenv()
+from app.settings import ENV_FILE
+
+load_dotenv(dotenv_path=ENV_FILE)
 
 client = OpenAI(
     api_key=os.getenv("DEEPSEEK_API_KEY"),

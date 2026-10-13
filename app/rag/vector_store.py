@@ -7,12 +7,15 @@ class VectorStore:
         self.client = chromadb.PersistentClient(path=persist_path)
         self.collection = self.client.get_or_create_collection(name=collection_name)
 
-    def add_chunks(self, document_id: str, filename: str, chunks: List[str]) -> None:
+    def add_chunks(self, document_id: str, filename: str, chunks: List[str], *, user_id: str) -> None:
+        if not user_id:
+            raise ValueError("User ID required")
         ids = [f"{document_id}_chunk_{index}" for index in range(len(chunks))]
 
         metadatas = [
             {
                 "document_id": document_id,
+                "user_id": user_id,
                 "filename": filename,
                 "chunk_index": index,
             }
@@ -25,10 +28,13 @@ class VectorStore:
             metadatas=metadatas,
         )
 
-    def search(self, query: str, top_k: int = 3) -> List[Dict[str, Any]]:
+    def search(self, query: str, top_k: int = 3, *, user_id: str) -> List[Dict[str, Any]]:
+        if not user_id:
+            raise ValueError("User ID required")
         results = self.collection.query(
             query_texts=[query],
             n_results=top_k,
+            where={"user_id": user_id},
         )
 
         documents = results.get("documents", [[]])[0]
@@ -43,6 +49,7 @@ class VectorStore:
             items.append({
                 "content": doc,
                 "document_id": metadata.get("document_id"),
+                "user_id": metadata.get("user_id"),
                 "filename": metadata.get("filename"),
                 "chunk_index": metadata.get("chunk_index"),
                 "distance": distance,

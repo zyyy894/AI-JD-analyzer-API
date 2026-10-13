@@ -12,7 +12,7 @@ RAG系统需要先把文档切分成片段，再进行向量化和相似度检�
 rag_service = RagService()
 
 # 先写入知识库
-chunks = rag_service.ingest_text(text)
+chunks = rag_service.ingest_text(text, user_id="local-demo")
 print(f"已写入 {len(chunks)} 个文本片段")
 
 # 再提问
@@ -20,7 +20,8 @@ question = "AI智能体岗位需要掌握哪些技术？"
 
 result = rag_service.ask(
     question=question,
-    top_k=3
+    top_k=3,
+    user_id="local-demo",
 )
 
 print("\n回答：")

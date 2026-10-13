@@ -4,16 +4,17 @@ from uuid import uuid4
 from app.rag.splitter import split_text
 from app.rag.vector_store import VectorStore
 from app.services.llm_service import call_llm
+from app.settings import CHROMA_DIR
 
 
 class RagService:
     def __init__(self):
         self.vector_store = VectorStore(
-            persist_path="./chroma_db",
+            persist_path=str(CHROMA_DIR),
             collection_name="job_docs"
         )
 
-    def ingest_text(self, text: str, filename: str = "input.txt") -> List[str]:
+    def ingest_text(self, text: str, filename: str = "input.txt", *, user_id: str) -> List[str]:
         chunks = split_text(
             text,
             chunk_size=500,
@@ -25,15 +26,17 @@ class RagService:
         self.vector_store.add_chunks(
             document_id=document_id,
             filename=filename,
-            chunks=chunks
+            chunks=chunks,
+            user_id=user_id,
         )
 
         return chunks
 
-    def ask(self, question: str, top_k: int = 3) -> Dict[str, Any]:
+    def ask(self, question: str, top_k: int = 3, *, user_id: str) -> Dict[str, Any]:
         contexts = self.vector_store.search(
             query=question,
-            top_k=top_k
+            top_k=top_k,
+            user_id=user_id,
         )
 
         prompt = self._build_rag_prompt(question, contexts)
@@ -43,6 +46,16 @@ class RagService:
             "answer": answer,
             "sources": contexts
         }
+
+    def ingest_document(self, document_id: str, filename: str, text: str, *, user_id: str) -> List[str]:
+        chunks = split_text(text, chunk_size=500, chunk_overlap=100)
+        self.vector_store.add_chunks(
+            document_id=document_id,
+            filename=filename,
+            chunks=chunks,
+            user_id=user_id,
+        )
+        return chunks
 
     def _build_rag_prompt(
         self,

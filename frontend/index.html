@@ -2,33 +2,202 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>企业知识库智能体助手</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <main class="container">
-        <h1>企业知识库智能体助手</h1>
+    <section class="app-shell auth-panel" id="authPanel">
+        <div class="panel">
+            <div class="panel-head">
+                <div>
+                    <p class="panel-kicker">Account</p>
+                    <h2>登录后使用</h2>
+                </div>
+            </div>
+            <div class="button-row">
+                <input id="authEmail" type="email" placeholder="邮箱">
+                <input id="authPassword" type="password" placeholder="密码（至少 8 位）">
+                <button class="primary-btn" id="loginBtn" type="button">登录</button>
+                <button class="ghost-btn" id="registerBtn" type="button">注册</button>
+                <button class="ghost-btn" id="logoutBtn" type="button" hidden>退出</button>
+            </div>
+            <span id="authResult" class="feedback">请输入账号</span>
+        </div>
+    </section>
+    <div class="bg-grid"></div>
+    <main class="app-shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">AI RAG Agent Console</p>
+                <h1>企业知识库智能体助手</h1>
+                <p class="subtitle">上传文档、检索知识、生成学习计划，所有结果都在一个工作台里完成。</p>
+            </div>
+            <div class="status-stack">
+                <span class="status-pill live">Backend Ready</span>
+                <span class="status-pill accent">RAG + Agent</span>
+                <span class="status-pill muted">Markdown Export</span>
+            </div>
+        </header>
 
-        <section>
-            <h2>上传文档</h2>
-            <input id="fileInput" type="file">
-            <button id="uploadBtn">上传</button>
-            <p id="uploadResult"></p>
+        <section class="stats-row">
+            <article class="stat-card">
+                <span class="stat-label">知识源</span>
+                <strong id="docCount">0</strong>
+                <span class="stat-hint">已上传文档</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">记录</span>
+                <strong id="historyCount">0</strong>
+                <span class="stat-hint">问答历史</span>
+            </article>
+            <article class="stat-card">
+                <span class="stat-label">状态</span>
+                <strong id="appStatus">Idle</strong>
+                <span class="stat-hint">当前操作</span>
+            </article>
         </section>
 
-        <section>
-            <h2>RAG 问答</h2>
-            <textarea id="questionInput" placeholder="请输入问题"></textarea>
-            <button id="askBtn">提问</button>
-            <div id="answerBox"></div>
-            <ul id="sourceList"></ul>
-        </section>
+        <section class="workspace">
+            <div class="main-column">
+                <section class="panel">
+                    <div class="panel-head">
+                        <div>
+                            <p class="panel-kicker">01 / Upload</p>
+                            <h2>上传文档</h2>
+                        </div>
+                        <button class="ghost-btn" id="refreshDocsBtn" type="button">刷新文档</button>
+                    </div>
 
-        <section>
-            <h2>Agent 复杂任务</h2>
-            <textarea id="taskInput" placeholder="例如：根据知识库内容生成一份学习计划"></textarea>
-            <button id="agentBtn">运行 Agent</button>
-            <pre id="agentResult"></pre>
+                    <label class="dropzone" id="dropzone" for="fileInput">
+                        <input id="fileInput" type="file" hidden>
+                        <div class="dropzone-icon">⇪</div>
+                        <div>
+                            <strong>拖拽文件到这里，或点击选择</strong>
+                            <p>支持 TXT、MD、PDF、DOCX</p>
+                        </div>
+                    </label>
+
+                    <div class="inline-meta">
+                        <span id="fileMeta">未选择文件</span>
+                        <span id="uploadResult" class="feedback">等待上传</span>
+                    </div>
+
+                    <div class="button-row">
+                        <button class="primary-btn" id="uploadBtn" type="button">开始上传</button>
+                        <button class="ghost-btn" id="clearFileBtn" type="button">清空选择</button>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-head">
+                        <div>
+                            <p class="panel-kicker">02 / RAG</p>
+                            <h2>知识库问答</h2>
+                        </div>
+                        <div class="toolbar">
+                            <label class="mini-label" for="topKSelect">Top K</label>
+                            <select id="topKSelect">
+                                <option value="3">3</option>
+                                <option value="5">5</option>
+                                <option value="8">8</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <textarea id="questionInput" class="prompt-box" placeholder="请输入问题，例如：RAG 系统需要掌握哪些技术？"></textarea>
+
+                    <div class="button-row">
+                        <button class="primary-btn" id="askBtn" type="button">发送问题</button>
+                        <button class="ghost-btn" id="clearQuestionBtn" type="button">清空输入</button>
+                    </div>
+
+                    <div class="response-shell">
+                        <div class="response-head">
+                            <h3>回答</h3>
+                            <button class="ghost-btn small" id="copyAnswerBtn" type="button">复制</button>
+                        </div>
+                        <div id="answerBox" class="response-box empty">等待提问</div>
+                    </div>
+
+                    <div class="response-shell">
+                        <div class="response-head">
+                            <h3>来源引用</h3>
+                            <button class="ghost-btn small" id="refreshHistoryBtn" type="button">刷新历史</button>
+                        </div>
+                        <ul id="sourceList" class="list-box"></ul>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-head">
+                        <div>
+                            <p class="panel-kicker">03 / Agent</p>
+                            <h2>复杂任务</h2>
+                        </div>
+                        <button class="ghost-btn" id="clearTaskBtn" type="button">清空任务</button>
+                    </div>
+
+                    <textarea id="taskInput" class="prompt-box" placeholder="例如：根据这个岗位JD和知识库内容，生成一份学习计划"></textarea>
+
+                    <div class="button-row">
+                        <button class="primary-btn" id="agentBtn" type="button">运行 Agent</button>
+                    </div>
+
+                    <div class="response-shell">
+                        <div class="response-head">
+                            <h3>Agent 结果</h3>
+                            <button class="ghost-btn small" id="copyAgentBtn" type="button">复制</button>
+                        </div>
+                        <pre id="agentResult" class="code-box empty">等待执行</pre>
+                    </div>
+                </section>
+            </div>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <div>
+                        <p class="panel-kicker">04 / Match</p>
+                        <h2>Resume / JD Match</h2>
+                    </div>
+                </div>
+                <div class="match-grid">
+                    <label class="dropzone compact-dropzone" for="matchResumeInput">
+                        <input id="matchResumeInput" type="file" accept=".txt,.md,.pdf,.docx" hidden>
+                        <strong id="matchResumeLabel">Choose resume</strong>
+                        <p>TXT / MD / PDF / DOCX</p>
+                    </label>
+                    <textarea id="matchJdInput" class="prompt-box" placeholder="Paste the job description here"></textarea>
+                </div>
+                <div class="button-row">
+                    <button class="primary-btn" id="matchBtn" type="button">Match now</button>
+                    <button class="ghost-btn" id="matchAsyncBtn" type="button">Run in background</button>
+                    <span id="matchStatus" class="feedback">Waiting</span>
+                </div>
+                <div id="matchResult" class="match-result empty">Match results will appear here</div>
+            </section>
+
+            <aside class="side-column">
+                <section class="panel slim">
+                    <div class="panel-head">
+                        <div>
+                            <p class="panel-kicker">Live</p>
+                            <h2>文档列表</h2>
+                        </div>
+                    </div>
+                    <ul id="documentList" class="list-box compact"></ul>
+                </section>
+
+                <section class="panel slim">
+                    <div class="panel-head">
+                        <div>
+                            <p class="panel-kicker">History</p>
+                            <h2>问答记录</h2>
+                        </div>
+                    </div>
+                    <ul id="historyList" class="list-box compact"></ul>
+                </section>
+            </aside>
         </section>
     </main>
 

@@ -5,8 +5,8 @@ from app.services.prompt_service import build_jd_analyze_prompt
 rag_service = RagService()
 
 
-def search_knowledge_base(query: str, top_k: int = 3) -> dict:
-    return rag_service.ask(question=query, top_k=top_k)
+def search_knowledge_base(query: str, top_k: int = 3, *, user_id: str) -> dict:
+    return rag_service.ask(question=query, top_k=top_k, user_id=user_id)
 
 
 def analyze_job_description(jd: str) -> str:

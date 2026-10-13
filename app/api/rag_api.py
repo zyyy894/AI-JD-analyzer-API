@@ -1,5 +1,6 @@
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
+from app.dependencies import get_current_user
 from app.rag.document_loader import load_document_text
 from app.rag.rag_service import RagService
 from app.schemas import ApiResponse, RagAskRequest, RagIngestRequest
@@ -22,13 +23,13 @@ logger = setup_logger(__name__)
 
 
 @router.post("/ingest", response_model=ApiResponse)
-def rag_ingest(request: RagIngestRequest):
+def rag_ingest(request: RagIngestRequest, user=Depends(get_current_user)):
     text = request.text.strip()
 
     if not text:
         raise HTTPException(status_code=400, detail="知识库文本不能为空")
 
-    chunks = rag_service.ingest_text(text)
+    chunks = rag_service.ingest_text(text, user_id=user["id"])
 
     return {
         "code": 200,
@@ -41,7 +42,7 @@ def rag_ingest(request: RagIngestRequest):
 
 
 @router.post("/ask", response_model=ApiResponse)
-def rag_ask(request: RagAskRequest):
+def rag_ask(request: RagAskRequest, user=Depends(get_current_user)):
     question = request.question.strip()
 
     if not question:
@@ -49,10 +50,12 @@ def rag_ask(request: RagAskRequest):
 
     result = rag_service.ask(
         question=question,
-        top_k=request.top_k
+        top_k=request.top_k,
+        user_id=user["id"],
     )
 
     insert_qa_history(
+        user_id=user["id"],
         question=question,
         answer=result["answer"],
         sources=result["sources"],
@@ -66,7 +69,7 @@ def rag_ask(request: RagAskRequest):
 
 
 @router.post("/documents/upload", response_model=ApiResponse)
-def upload_document(file: UploadFile = File(...)):
+def upload_document(file: UploadFile = File(...), user=Depends(get_current_user)):
     saved = save_upload_file(file)
     text = load_document_text(saved["file_path"])
 
@@ -77,9 +80,11 @@ def upload_document(file: UploadFile = File(...)):
         document_id=saved["document_id"],
         filename=saved["filename"],
         text=text,
+        user_id=user["id"],
     )
 
     insert_document(
+        user_id=user["id"],
         document_id=saved["document_id"],
         filename=saved["filename"],
         file_path=saved["file_path"],
@@ -99,18 +104,19 @@ def upload_document(file: UploadFile = File(...)):
 
 
 @router.get("/documents", response_model=ApiResponse)
-def rag_documents():
+def rag_documents(user=Depends(get_current_user)):
     return {
         "code": 200,
         "message": "success",
-        "data": list_documents()
+        "data": list_documents(user_id=user["id"])
     }
 
 
 @router.get("/history", response_model=ApiResponse)
-def rag_history():
+def rag_history(user=Depends(get_current_user)):
     return {
         "code": 200,
         "message": "success",
-        "data": list_qa_history()
+        "data": list_qa_history(user_id=user["id"])
     }
+from app.dependencies import get_current_user

@@ -33,7 +33,7 @@ def route_by_intent(state: AgentState):
 
 
 def knowledge_tool_node(state: AgentState):
-    result = search_knowledge_base(state["user_input"], top_k=3)
+    result = search_knowledge_base(state["user_input"], top_k=3, user_id=state["user_id"])
 
     return {
         "tool_results": [
